@@ -3,146 +3,100 @@
 - `yarn build` – Compile Contracts
 - `yarn test` – Run Tests
 - `yarn deploy` – Run Deploy Scripts
-- `yarn test:watch` – Run Tests in Watchmode (run when files change)
+- `yarn test:watch` – Run Tests in Watch Mode (run when files change)
 - `yarn coverage` – Display Code Coverage
 - `yarn typechain` – Update Types
 
-# Project Setup
+# Get Started
 
-```shell
-# Init Project
-yarn init -y
-yarn config set nodeLinker node-modules
+- `contracts/` contains all Solidity files to get your project started
+- `.env*` is for managing environment variables, especially deployment keys
+- `deploy/` is for deployment scripts using [hardhat-deploy](https://github.com/wighawag/hardhat-deploy/blob/master/README.md)
+- `deployments/` contains an archived list of deployed contracts, grouped by network
+- `test/` is for testing your contracts
 
-# Init Hardhat
-yarn add --dev hardhat
-npx hardhat init
+## Generate your own Private Keys
 
-# Init Vechain
-yarn add --dev @vechain/web3-providers-connex @vechain/hardhat-vechain @vechain/hardhat-web3 @vechain/hardhat-ethers
+For example, run the following command to generate a new random wallet:
 
-# Init Dependencies & Helpers
-yarn add @openzeppelin/contracts@4 @openzeppelin/contracts-upgradeable@4 @openzeppelin/hardhat-upgrades @ensdomains/ens-contracts
-yarn add --dev dotenv @dotenvx/dotenvx hardhat-deploy@npm:@vechain.energy/hardhat-deploy@latest
+```bash
+echo "PRIVATE_KEY=0x$(openssl rand -hex 32)" > .env.production
 ```
 
-```ts
-import "@nomicfoundation/hardhat-toolbox";
-import "@openzeppelin/hardhat-upgrades";
-import "@vechain/hardhat-vechain";
-import "@vechain/hardhat-ethers";
-import "hardhat-deploy";
-import "dotenv/config";
+- `PRIVATE_KEY` refers to your wallet used for deploying and upgrading the contracts.
+- Storing the details in `.env.production` creates a new environment named production.
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-
-if (!PRIVATE_KEY) {
-  throw new Error(
-    "Please set your PRIVATE_KEY in a .env file or in your environment variables"
-  );
-}
-
-const accounts = [
-  PRIVATE_KEY, // deployer
-  process.env.DEPLOYER_PRIVATE_KEY ?? PRIVATE_KEY, // proxyOwner
-  process.env.OWNER_PRIVATE_KEY ?? PRIVATE_KEY, // owner
-];
-
-// see https://github.com/wighawag/hardhat-deploy?tab=readme-ov-file#1-namedaccounts-ability-to-name-addresses
-const namedAccounts = {
-  deployer: { default: 0 },
-  proxyOwner: { default: 1 },
-  owner: { default: 2 },
-};
-
-const config = {
-  solidity: "0.8.19",
-  networks: {
-    vechain_testnet: {
-      url: "https://node-testnet.vechain.energy",
-      accounts,
-      restful: true,
-      gas: 10000000,
-
-      // optionally use fee delegation to let someone else pay the gas fees
-      // visit vechain.energy for a public fee delegation service
-      delegate: {
-        url: "https://sponsor-testnet.vechain.energy/by/90",
-      },
-      loggingEnabled: true,
-    },
-    vechain_mainnet: {
-      url: "https://node-mainnet.vechain.energy",
-      accounts,
-      restful: true,
-      gas: 10000000,
-    },
-  },
-
-  namedAccounts,
-};
-
-export default config;
-```
-
-# Deploy
-
-Private keys are sourced from environment variables. By default, the `.env` file is utilized (refer to `.env.example` for an example). Encryption is facilitated through [dotenvx](https://www.npmjs.com/package/dotenv#-manage-multiple-environments) and is enabled by setting the environment variable `DOTENV_KEY`.
-
-**Deploy to Vechain TestNet:**
+## Encrypt your private keys
 
 ```shell
-yarn deploy --network vechain_testnet
+npx dotenvx encrypt
 ```
 
-**Deploy to the Vechain TestNet, specifying deploy scripts by tag:**
+The output will look similar to this:
 
-```shell
-yarn deploy --network vechain_testnet --tags <tag>
-```
-
-**Deploy to Vechain MainNet using an encrypted vault:**
-
-```shell
-DOTENV_KEY=<key> yarn deploy --network vechain_testnet --tags <tag>
-```
-
-**Use custom environment files:**
-
-```shell
-npx dotenvx run --env-file=<env file> -- npx hardhat deploy --network vechain_testnet
-```
-_read more about dotenvx on https://www.npmjs.com/package/dotenv#-manage-multiple-environments_
-
-## .env Vault
-
-- `npx dotenv encrypt` – Encrypts your current `.env` file and stores a `.env.vault` file, which can be decoded with a secret that is print by the command
-- `DOTENV_KEY=<key> npx dotenvx run -- yarn deploy` – Restores the `.env` and executes the given command
-- Read more at: https://www.npmjs.com/package/dotenv#dotenv-vault-1
-
-### Example
-
-```shell
-# encrypt your .env
+```bash
 $ npx dotenvx encrypt
-✔ encrypted to .env.vault (.env,.env.example,.env.test)
+Update available 0.20.0 → 0.32.0 [see changelog](dotenvx.com/changelog)
+✔ encrypted to .env.vault (.env,.env.example,.env.production)
 ℹ commit .env.vault to code: [git commit -am ".env.vault"]
-✔ keys added to .env.keys (DOTENV_KEY_DEVELOPMENT,DOTENV_KEY_EXAMPLE,DOTENV_KEY_TEST)
+✔ key added to .env.keys (DOTENV_KEY_PRODUCTION)
 ℹ push .env.keys up to hub: [dotenvx hub push]
-ℹ run [DOTENV_KEY='dotenv://:key_63d249a48829f1918817babcdf6432acdbad12a0e37e1dd41a1964c9afbed0ba@dotenvx.com/vault/.env.vault?environment=test' dotenvx run -- yourcommand] to test decryption locally
-
-# delete .env for testing purpose
-$ rm .env
-
-# restore .env with DOTENV_KEY as encryption key
-# .env.vault can be checked into your repo
-$ DOTENV_KEY='dotenv://:key_63d249a48829f1918817babcdf6432acdbad12a0e37e1dd41a1964c9afbed0ba@dotenvx.com/vault/.env.vault?environment=test' npx dotenvx run -- yarn deploy
-[dotenvx@0.20.0] injecting env (3) from encrypted .env.vault
-[dotenv@16.4.5][INFO] Loading env from encrypted .env.vault
-Nothing to compile
-No need to generate any newer typings.
-reusing "MyTokenUpgradeable_Implementation" at 0x481c1d93B5E3F563bA76Af878b186f22C3b91B89
-Owner already has UPGRADER_ROLE
-MyTokenUpgradeable is available at 0x1cD719Cb3C02f5c6b83F8b342075A6EE52b9C166
-Syncing name for 0x0c8c789a88b22B80225c272E021b881833114eA1 to nft.insecure.demo.vet, owned by 0xa9B9001aA9182B999D2c05FA5616590C7212F919
+ℹ run [DOTENV_KEY='dotenv://:key_d2765b31f83ee454c369fb5a29b72d7bf4cdd08e2280618f892b24afb209671d@dotenvx.com/vault/.env.vault?environment=production' dotenvx run -- yourcommand] to test decryption locally
 ```
+
+- This process also inserts a new line into `.env.vault` containing the encrypted details.
+- You may now delete `.env.production`.
+- A line is added to `.env.keys` with the decryption key; **this should never be added to your git repository**.
+- Ensure you back up your private key!
+
+## Deployment
+
+Deploy on the Vechain TestNet to check for errors using the previously mentioned `DOTENV_KEY`:
+
+``shell
+DOTENV_KEY='...' yarn deploy --network vechain_testnet
+```
+
+The output should resemble the following:
+
+```shell
+[dotenvx@0.20.0] injecting env (1) from encrypted .env.vault
+[dotenv@16.4.5][INFO] Loading env from encrypted .env.vault
+
+Generating typings for: 35 artifacts in dir: typechain-types for target: ethers-v6
+Successfully generated 100 typings!
+Compiled 35 Solidity files successfully (evm target: paris).
+Deploying from 0x984A76543E49E751F651A65237bA1C4d7618B4A2
+deploying "MyTokenUpgradeable_Implementation" (tx: 0xc846090c7feb341d407aca649b486d32c0f9a3e3952f8852e0c2f5626e3a443d)...: deployed at 0xF1A74a7B5c2B03Ae5951aAe728FA099c07dAb5A1 with 3717093 gas
+deploying "MyTokenUpgradeable_Proxy" (tx: 0x4861168921f7f8ec3a665aedeb6645f60e590e61c319de68465e010afd132a4b)...: deployed at 0x49f8e1F81dF3da4d3313B429ba29C474Df12452a with 654862 gas
+MyTokenUpgradeable is available at 0x49f8e1F81dF3da4d3313B429ba29C474Df12452a
+```
+
+Please take note of this line:
+
+```shell
+Deploying from 0x984A76543E49E751F651A65237bA1C4d7618B4A2
+```
+
+This is your deployment wallet, which will require VTHO to deploy the contracts. You must send VTHO to its address to enable deployment.
+
+### Upgradable Contracts
+
+Should your contract undergo changes, simply re-run the deployment script, and it will handle the upgrade process for you.
+For more information on deployment scripts, visit [hardhat-deploy](https://github.com/wighawag/hardhat-deploy).
+
+### Main Deployment
+
+```shell
+DOTENV_KEY='...' yarn deploy --network vechain_mainnet
+```
+
+If the deployment fails with:
+
+```
+...403 post transactions: tx rejected: insufficient energy {"code":-32000} ProviderRpcError: 403 post transactions: tx rejected: insufficient energy
+```
+
+...then your deployment wallet requires more VTHO.
+
+

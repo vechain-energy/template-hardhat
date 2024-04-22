@@ -4,6 +4,8 @@ import { DeployFunction } from 'hardhat-deploy/types';
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployer, proxyOwner, owner } = await hre.getNamedAccounts();
 
+    console.log('Deploying from', deployer)
+
     // deploy a proxied contract
     await hre.deployments.deploy('MyTokenUpgradeable', {
         from: deployer,

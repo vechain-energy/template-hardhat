@@ -25,8 +25,12 @@ const namedAccounts = {
 
 const config = {
   solidity: "0.8.19",
-  defaultNetwork: "vechain_testnet",
+  defaultNetwork: "hardhat",
   networks: {
+    hardhat: {
+      chainId: 1337,
+      gas: 10000000
+    },
     vechain_testnet: {
       url: "https://node-testnet.vechain.energy",
       accounts,
