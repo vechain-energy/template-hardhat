@@ -53,7 +53,7 @@ Update available 0.20.0 → 0.32.0 [see changelog](dotenvx.com/changelog)
 
 Deploy on the Vechain TestNet to check for errors using the previously mentioned `DOTENV_KEY`:
 
-``shell
+```shell
 DOTENV_KEY='...' yarn deploy --network vechain_testnet
 ```
 
