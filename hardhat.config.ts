@@ -1,13 +1,9 @@
-import { task } from 'hardhat/config';
 import "@nomicfoundation/hardhat-toolbox";
+import '@nomicfoundation/hardhat-ethers';
 import '@vechain/sdk-hardhat-plugin';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-deploy';
-
-import '@nomicfoundation/hardhat-ethers';
-import 'hardhat-deploy';
 import 'hardhat-deploy-ethers';
-
 import 'dotenv/config';
 
 if (!process.env.PRIVATE_KEY) {
@@ -27,10 +23,6 @@ const namedAccounts = {
   proxyOwner: { default: 1 },
   owner: { default: 2 },
 };
-
-task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
-  console.log(await hre.network.provider.request({ method: 'eth_accounts' }));
-});
 
 const config = {
   solidity: "0.8.19",

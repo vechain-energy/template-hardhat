@@ -12,36 +12,35 @@ yarn add --dev hardhat
 npx hardhat init
 
 # Init Vechain
-yarn add --dev @vechain/web3-providers-connex @vechain/hardhat-vechain @vechain/hardhat-web3 @vechain/hardhat-ethers
+yarn add --dev @vechain/sdk-hardhat-plugin
 
 # Init Dependencies & Helpers
 yarn add @openzeppelin/contracts@4 @openzeppelin/contracts-upgradeable@4 @openzeppelin/hardhat-upgrades @ensdomains/ens-contracts
-yarn add --dev dotenv @dotenvx/dotenvx hardhat-deploy@npm:@vechain.energy/hardhat-deploy@latest
+yarn add --dev dotenv @dotenvx/dotenvx
+yarn add --dev @nomicfoundation/hardhat-ethers ethers hardhat-deploy hardhat-deploy-ethers
 ```
 
 ```ts
 import "@nomicfoundation/hardhat-toolbox";
-import "@openzeppelin/hardhat-upgrades";
-import "@vechain/hardhat-vechain";
-import "@vechain/hardhat-ethers";
-import "hardhat-deploy";
-import "dotenv/config";
+import '@nomicfoundation/hardhat-ethers';
+import '@vechain/sdk-hardhat-plugin';
+import '@openzeppelin/hardhat-upgrades';
+import 'hardhat-deploy';
+import 'hardhat-deploy-ethers';
+import 'dotenv/config';
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-
-if (!PRIVATE_KEY) {
-  throw new Error(
-    "Please set your PRIVATE_KEY in a .env file or in your environment variables"
-  );
+if (!process.env.PRIVATE_KEY) {
+  throw new Error('Please set your PRIVATE_KEY in a .env file or in your environment variables');
 }
 
 const accounts = [
-  PRIVATE_KEY, // deployer
-  process.env.DEPLOYER_PRIVATE_KEY ?? PRIVATE_KEY, // proxyOwner
-  process.env.OWNER_PRIVATE_KEY ?? PRIVATE_KEY, // owner
+  process.env.PRIVATE_KEY, // deployer
+  process.env.DEPLOYER_PRIVATE_KEY ?? process.env.PRIVATE_KEY, // proxyOwner
+  process.env.OWNER_PRIVATE_KEY ?? process.env.PRIVATE_KEY, // owner
 ];
 
 // see https://github.com/wighawag/hardhat-deploy?tab=readme-ov-file#1-namedaccounts-ability-to-name-addresses
+// references the index from the accounts list above, can be configured by network too
 const namedAccounts = {
   deployer: { default: 0 },
   proxyOwner: { default: 1 },
@@ -54,30 +53,34 @@ const config = {
   networks: {
     hardhat: {
       chainId: 1337,
-      gas: 10000000,
+      gas: 10000000
     },
     vechain_testnet: {
       url: "https://node-testnet.vechain.energy",
       accounts,
       restful: true,
-      gas: 10000000,
+      gas: 'auto',
+      gasPrice: 'auto',
+      gasMultiplier: 1,
 
       // optionally use fee delegation to let someone else pay the gas fees
       // visit vechain.energy for a public fee delegation service
-      delegate: {
-        url: "https://sponsor-testnet.vechain.energy/by/90",
+      delegator: {
+        delegatorUrl: "https://sponsor-testnet.vechain.energy/by/90"
       },
+      enableDelegation: true,
       loggingEnabled: true,
     },
     vechain_mainnet: {
       url: "https://node-mainnet.vechain.energy",
       accounts,
       restful: true,
-      gas: 10000000,
+      gas: 'auto',
+      gasPrice: 'auto',
+      gasMultiplier: 1,
     },
   },
-
-  namedAccounts,
+  namedAccounts
 };
 
 export default config;
