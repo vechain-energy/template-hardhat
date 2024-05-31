@@ -1,8 +1,13 @@
+import { task } from 'hardhat/config';
 import "@nomicfoundation/hardhat-toolbox";
+import '@vechain/sdk-hardhat-plugin';
 import '@openzeppelin/hardhat-upgrades';
-import "@vechain/hardhat-vechain";
-import '@vechain/hardhat-ethers';
 import 'hardhat-deploy';
+
+import '@nomicfoundation/hardhat-ethers';
+import 'hardhat-deploy';
+import 'hardhat-deploy-ethers';
+
 import 'dotenv/config';
 
 if (!process.env.PRIVATE_KEY) {
@@ -23,6 +28,10 @@ const namedAccounts = {
   owner: { default: 2 },
 };
 
+task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
+  console.log(await hre.network.provider.request({ method: 'eth_accounts' }));
+});
+
 const config = {
   solidity: "0.8.19",
   defaultNetwork: "hardhat",
@@ -35,20 +44,25 @@ const config = {
       url: "https://node-testnet.vechain.energy",
       accounts,
       restful: true,
-      gas: 10000000,
+      gas: 'auto',
+      gasPrice: 'auto',
+      gasMultiplier: 1,
 
       // optionally use fee delegation to let someone else pay the gas fees
       // visit vechain.energy for a public fee delegation service
-      delegate: {
-        url: "https://sponsor-testnet.vechain.energy/by/90"
+      delegator: {
+        delegatorUrl: "https://sponsor-testnet.vechain.energy/by/90"
       },
+      enableDelegation: true,
       loggingEnabled: true,
     },
     vechain_mainnet: {
       url: "https://node-mainnet.vechain.energy",
       accounts,
       restful: true,
-      gas: 10000000,
+      gas: 'auto',
+      gasPrice: 'auto',
+      gasMultiplier: 1,
     },
   },
   namedAccounts
