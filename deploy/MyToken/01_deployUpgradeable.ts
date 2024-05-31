@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy/types';
+import type { DeployFunction } from 'hardhat-deploy/types';
+import type { MyTokenUpgradeable } from '../../typechain-types';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const { deployer, proxyOwner, owner } = await hre.getNamedAccounts();
@@ -26,18 +27,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
 
     // read data from contract
-    const ugpraderRole = await hre.deployments.read('MyTokenUpgradeable', {}, 'UPGRADER_ROLE');
-    if (!(await hre.deployments.read('MyTokenUpgradeable', {}, 'hasRole', ugpraderRole, owner))) {
+    const contract = await hre.ethers.getContract('MyTokenUpgradeable', proxyOwner) as MyTokenUpgradeable
 
+    // get role identifier
+    const ugpraderRole = await contract.UPGRADER_ROLE()
+
+    // check role for owner
+    if (!(await contract.hasRole(ugpraderRole, owner))) {
         console.log('Granting owner UPGRADER_ROLE');
+
         // execute a function of the deployed contract
-        await hre.deployments.execute(
-            'MyTokenUpgradeable',
-            { from: deployer },
-            'grantRole',
-            ugpraderRole,
-            owner
-        );
+        // .wait() waits for the receipts and throws if it reverts
+        await (await contract.grantRole(ugpraderRole, owner)).wait()
     }
     else {
         console.log('Owner already has UPGRADER_ROLE');
